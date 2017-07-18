@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of CERN Open Data Portal.
-# Copyright (C) 2015, 2016 CERN.
+# Copyright (C) 2015, 2016, 2017 CERN.
 #
 # CERN Open Data Portal is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -25,44 +25,42 @@
 # Use Python-2.7:
 FROM python:2.7-slim
 
-COPY scripts/provision-web.sh /tmp/
-
-# Install CERN Open Data Portal web node pre-requisites:
-RUN /tmp/provision-web.sh
+# Configure CERN Open Data Portal instance:
+ENV INVENIO_WEB_INSTANCE=cernopendata
+ENV INVENIO_INSTANCE_PATH=/usr/local/var/cernopendata-instance
 
 # Add CERN Open Data Portal sources to `code` and work there:
 WORKDIR /code
 ADD . /code
 
-# Run container as user `invenio` with UID `1000`, which should match
-# current host user in most situations:
-RUN adduser --uid 1000 --disabled-password --gecos '' invenio && \
-    chown -R invenio:invenio /code
-USER invenio
+RUN apt-get -y update \
+    && apt-get -y install \
+     libffi-dev \
+     libfreetype6-dev \
+     libjpeg-dev \
+     libmsgpack-dev \
+     libssl-dev \
+     libtiff-dev \
+     libxml2-dev \
+     libxslt-dev \
+     nodejs \
+     python-dev \
+     python-pip
+RUN apt-get -qy install --fix-missing --no-install-recommends apt-utils curl \
+    && curl -sL https://deb.nodesource.com/setup_6.x | bash - \
+    && apt-get -qy install --fix-missing --no-install-recommends nodejs
 
-# Configure CERN Open Data Portal instance:
-ENV INVENIO_WEB_HOST=web
-ENV INVENIO_WEB_INSTANCE=cernopendata
-ENV INVENIO_WEB_VENV=cernopendata
-ENV INVENIO_USER_EMAIL=info@inveniosoftware.org
-ENV INVENIO_USER_PASS=uspass123
-ENV INVENIO_POSTGRESQL_HOST=postgresql
-ENV INVENIO_POSTGRESQL_DBNAME=cernopendata
-ENV INVENIO_POSTGRESQL_DBUSER=cernopendata
-ENV INVENIO_POSTGRESQL_DBPASS=dbpass123
-ENV INVENIO_REDIS_HOST=redis
-ENV INVENIO_ELASTICSEARCH_HOST=elasticsearch
-ENV INVENIO_RABBITMQ_HOST=rabbitmq
-ENV INVENIO_WORKER_HOST=127.0.0.1
-
-# Create CERN Open Data Portal instance:
-RUN /code/scripts/create-instance.sh
-
-# Make given VENV default:
-ENV PATH=/home/invenio/.virtualenvs/cernopendata/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-ENV VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python
-RUN echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
-RUN echo "workon cernopendata" >> ~/.bashrc
+# Install CERN Open Data Portal
+RUN pip install .[all] \
+    && pip install jinja2-cli[yaml] \
+    && mkdir -p ${INVENIO_INSTANCE_PATH} \
+    && ${INVENIO_WEB_INSTANCE} npm \
+    && npm update && npm install --silent -g node-sass@3.8.0 clean-css@3.4.19 uglify-js@2.7.3 requirejs@2.2.0 \
+    && cd ${INVENIO_INSTANCE_PATH}/static \
+    && CI=true npm install \
+    && ${INVENIO_WEB_INSTANCE} collect -v \
+    && ${INVENIO_WEB_INSTANCE} assets build \
+    && chmod -R 777 ${INVENIO_INSTANCE_PATH}
 
 # Start the CERN Open Data Portal application:
 CMD ["/bin/bash", "-c", "cernopendata run -h 0.0.0.0"]
