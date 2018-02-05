@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of CERN Open Data Portal.
-# Copyright (C) 2017 CERN.
+# Copyright (C) 2017, 2018 CERN.
 #
 # CERN Open Data Portal is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -72,10 +72,11 @@ install_requires = [
     'Flask-Markdown>=0.3.0',
     'Flask-Menu>=0.5.0',
     'Flask-Mistune>=0.1.1',
+    'Flask-Script>=2.0.6',
+    'Flask-Sitemap>=0.2.0',
     'Flask>=0.11.1',
-    'idna==2.5',
-    'python-slugify>=1.2.4',
     'datacite>=0.3.0',
+    'idna==2.5',
     'invenio-assets>=1.0.0b6',
     'invenio-base>=1.0.0a9',
     'invenio-celery>=1.0.0b1',
@@ -84,7 +85,6 @@ install_requires = [
     'invenio-i18n>=1.0.0b1',
     'invenio-indexer>=1.0.0a1',
     'invenio-jsonschemas==1.0.0a5',
-    'invenio-xrootd>=1.0.0a4',
     'invenio-pidstore>=1.0.0b1',
     'invenio-previewer>=1.0.0a11',
     'invenio-records-files==1.0.0a10',
@@ -94,6 +94,7 @@ install_requires = [
     'invenio-search-ui>=1.0.0a2',
     'invenio-search>=1.0.0a9',
     'invenio-theme==1.0.0b2',
+    'invenio-xrootd>=1.0.0a4',
     'mistune>=0.7.4',
     'py-gfm>=0.1.3',
     'pymdown-extensions>=3.5',
